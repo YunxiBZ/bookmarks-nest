@@ -1,4 +1,7 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto } from './dto';
 import * as argon from 'argon2';
@@ -30,10 +33,15 @@ export class AuthService {
       // return response, nest will handle the response type (text or json etc)
       return this.signToken(user.id, user.email);
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (
+        error instanceof
+        PrismaClientKnownRequestError
+      ) {
         //  'P2002' is a Prisma Error Code : "Unique constraint failed on the {constraint}"
         if (error.code === 'P2002') {
-          throw new ForbiddenException('Credentials taken');
+          throw new ForbiddenException(
+            'Credentials taken',
+          );
         }
       }
       throw error;
@@ -42,17 +50,27 @@ export class AuthService {
 
   async signin(dto: AuthDto) {
     //  find the user by email
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email: dto.email,
-      },
-    });
+    const user =
+      await this.prisma.user.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
     // if user dose not exist throw exception
-    if (!user) throw new ForbiddenException('Credentials incorrect');
+    if (!user)
+      throw new ForbiddenException(
+        'Credentials incorrect',
+      );
     // compare password
-    const pwMatches = await argon.verify(user.hash, dto.password);
+    const pwMatches = await argon.verify(
+      user.hash,
+      dto.password,
+    );
     // if password incorrect throw exception
-    if (!pwMatches) throw new ForbiddenException('Credentials incorrect');
+    if (!pwMatches)
+      throw new ForbiddenException(
+        'Credentials incorrect',
+      );
     // else send back user signedin
 
     return this.signToken(user.id, user.email);
@@ -67,10 +85,13 @@ export class AuthService {
       email,
     };
     const secret = this.config.get('JWT_SECRET');
-    const token = await this.jwt.signAsync(payload, {
-      expiresIn: '15m',
-      secret,
-    });
+    const token = await this.jwt.signAsync(
+      payload,
+      {
+        expiresIn: '15m',
+        secret,
+      },
+    );
     return { access_token: token };
   }
 }
